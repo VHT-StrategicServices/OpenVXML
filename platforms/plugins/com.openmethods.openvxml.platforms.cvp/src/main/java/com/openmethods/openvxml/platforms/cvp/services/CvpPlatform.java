@@ -10,15 +10,20 @@
  *    - initial API and implementation
  -------------------------------------------------------------------------*/
 package com.openmethods.openvxml.platforms.cvp.services;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.vtp.framework.core.IExecutionContext;
 import org.eclipse.vtp.framework.engine.ResourceGroup;
+import org.eclipse.vtp.framework.interactions.core.commands.DataRequestCommand;
 import org.eclipse.vtp.framework.interactions.core.commands.Input;
 import org.eclipse.vtp.framework.interactions.core.commands.InputRequestCommand;
 import org.eclipse.vtp.framework.interactions.core.commands.SelectionRequestCommand;
@@ -27,6 +32,7 @@ import org.eclipse.vtp.framework.interactions.core.media.IMediaProviderRegistry;
 import org.eclipse.vtp.framework.interactions.core.platforms.IDocument;
 import org.eclipse.vtp.framework.interactions.core.platforms.ILink;
 import org.eclipse.vtp.framework.interactions.core.platforms.ILinkFactory;
+import org.eclipse.vtp.framework.interactions.core.services.ExtendedActionEventManager;
 import org.eclipse.vtp.framework.interactions.voice.services.TimeValue;
 import org.eclipse.vtp.framework.interactions.voice.services.VoicePlatform;
 import org.eclipse.vtp.framework.interactions.voice.vxml.Catch;
@@ -44,10 +50,12 @@ import org.eclipse.vtp.framework.interactions.voice.vxml.NoMatch;
 import org.eclipse.vtp.framework.interactions.voice.vxml.OutputSet;
 import org.eclipse.vtp.framework.interactions.voice.vxml.Prompt;
 import org.eclipse.vtp.framework.interactions.voice.vxml.RawInlineGrammar;
+import org.eclipse.vtp.framework.interactions.voice.vxml.Recording;
 import org.eclipse.vtp.framework.interactions.voice.vxml.SSMLMarkOutput;
 import org.eclipse.vtp.framework.interactions.voice.vxml.Script;
 import org.eclipse.vtp.framework.interactions.voice.vxml.Submit;
 import org.eclipse.vtp.framework.interactions.voice.vxml.TextOutput;
+import org.eclipse.vtp.framework.interactions.voice.vxml.VXMLConstants;
 import org.eclipse.vtp.framework.interactions.voice.vxml.VXMLDocument;
 import org.eclipse.vtp.framework.interactions.voice.vxml.Variable;
 
@@ -62,7 +70,8 @@ public class CvpPlatform extends VoicePlatform
 {
 	/** The media provider registry. */
 	private final IMediaProviderRegistry mediaProviderRegistry;
-
+	private final IExecutionContext context;
+	
 	/**
 	 * Creates a new AvpPlatform.
 	 */
@@ -70,6 +79,7 @@ public class CvpPlatform extends VoicePlatform
 	{
 		super(context);
 		this.mediaProviderRegistry = mediaProviderRegistry;
+		this.context = context;
 	}
  
 
@@ -505,6 +515,241 @@ public class CvpPlatform extends VoicePlatform
 		field.addEventHandler(disconnectCatch);
 		form.addFormElement(field);
 		return createVXMLDocument(links, form);
+	}
+	
+	@Override
+	protected IDocument renderDataRequest(ILinkFactory links,
+			DataRequestCommand dataRequestCommand)
+	{
+		Form form = new Form("DataRequestForm"); //$NON-NLS-1$
+		String bargeIn = getNormalizedBoolean(dataRequestCommand
+				.getPropertyValue("barge-in")); //$NON-NLS-1$
+		String playBeep = getNormalizedBoolean(dataRequestCommand
+				.getPropertyValue("play-beep")); //$NON-NLS-1$
+		String dtmfTerm = getNormalizedBoolean(dataRequestCommand
+				.getPropertyValue("dtmf-termination")); //$NON-NLS-1$
+		String initialTimeout = dataRequestCommand
+				.getPropertyValue("initial-timeout"); //$NON-NLS-1$
+		String finalSilence = dataRequestCommand
+				.getPropertyValue("final-silence-timeout"); //$NON-NLS-1$
+		String maxRecordTime = dataRequestCommand
+				.getPropertyValue("max-record-time"); //$NON-NLS-1$
+		Recording recording = new Recording(dataRequestCommand.getDataName());
+		recording.setFileType((String)context.getRootAttribute("com.virtualhold.toolkit.cvp.recording.type")); //$NON-NLS-1$
+		recording.setProperty(NAME_INPUTMODES, "dtmf"); //$NON-NLS-1$
+		if (playBeep != null)
+			recording.setBeepEnabled(Boolean.valueOf(playBeep).booleanValue());
+		if (dtmfTerm != null)
+			recording.setDtmfTermEnabled(Boolean.valueOf(dtmfTerm).booleanValue());
+		if (initialTimeout != null && initialTimeout.length() > 0)
+			recording.setTimeout(initialTimeout + "s"); //$NON-NLS-1$
+		if (finalSilence != null && finalSilence.length() > 0)
+			recording.setFinalSilence(finalSilence + "s"); //$NON-NLS-1$
+		if (maxRecordTime != null && maxRecordTime.length() > 0)
+			recording.setMaxtime(maxRecordTime + "s"); //$NON-NLS-1$
+		else
+			recording.setMaxtime("10s"); //$NON-NLS-1$
+		OutputSet outputs = new OutputSet();
+		for (int i = 0; i < dataRequestCommand.getOutputCount(); ++i)
+		{
+			String outputValue = dataRequestCommand.getOutputValue(i);
+			switch (dataRequestCommand.getOutputType(i))
+			{
+			case DataRequestCommand.OUTPUT_TYPE_FILE:
+				outputs.addOutput(generateAudioChain(links, outputValue));
+				break;
+			case DataRequestCommand.OUTPUT_TYPE_TEXT:
+				if(outputValue.startsWith("@@mark "))
+				{
+					outputs.addOutput(new SSMLMarkOutput(outputValue.substring(7)));
+				}
+				else
+				{
+				outputs.addOutput(new TextOutput(outputValue));
+				}
+				break;
+			}
+		}
+		Prompt prompt = new Prompt(outputs);
+		if (bargeIn != null)
+			prompt.setBargeInEnabled(Boolean.valueOf(bargeIn).booleanValue());
+		prompt.setLanguage(getCurrentLocale());
+		recording.setPrompt(prompt);
+		String[] parameterNames = dataRequestCommand.getParameterNames();
+		String[] submitVars = new String[parameterNames.length + 4];
+		submitVars[0] = dataRequestCommand.getDataName();
+		submitVars[1] = dataRequestCommand.getResultName();
+		submitVars[2] = dataRequestCommand.getDataName() + "_termchar";
+		submitVars[3] = "lastresult";
+		Filled filled = new Filled();
+		filled.addVariable(new Variable(dataRequestCommand.getResultName(), "'"
+				+ dataRequestCommand.getFilledResultValue() + "'"));
+		filled.addVariable(new Variable(dataRequestCommand.getDataName() + "_termchar", dataRequestCommand.getDataName() + "$.termchar"));
+		for (int i = 0; i < parameterNames.length; ++i)
+		{
+			submitVars[i + 4] = parameterNames[i];
+			String[] values = dataRequestCommand
+					.getParameterValues(parameterNames[i]);
+			StringBuffer buf = new StringBuffer();
+			for (int v = 0; v < values.length; v++)
+			{
+				buf.append(values[v]);
+				if (v < values.length - 1)
+					buf.append(',');
+			}
+			Variable paramVar = new Variable(parameterNames[i], "'" + buf.toString()
+					+ "'");
+			filled.addVariable(paramVar);
+		}
+		filled.addVariable(new Variable("lastresult", "''"));
+/*		filled.addVariable(new Variable("lastresult", "'<lastresult>'"));
+		Script script = new Script();
+		script.setText( "		lastresult = lastresult + '<mark name=\"' + application.lastresult$.markname + '\" offset=\"' + application.lastresult$.marktime + '\"/>';\r\n" +
+				"		for(var i = 0; i < application.lastresult$.length; i++)\r\n" +
+				"		{\r\n" +
+				"			lastresult = lastresult + '<result>';\r\n" +
+				"			lastresult = lastresult + '<confidence>' + application.lastresult$[i].confidence + '</confidence>';\r\n" +
+				"			lastresult = lastresult + '<utterance><![CDATA[' + application.lastresult$[i].utterance + ']]></utterance>';\r\n" +
+				"			lastresult = lastresult + '<inputmode><![CDATA[' + application.lastresult$[i].inputmode + ']]></inputmode>';\r\n" +
+				"			lastresult = lastresult + '<interpretation><![CDATA[' + application.lastresult$[i].interpretation + ']]></interpretation>';\r\n" +
+				"			lastresult = lastresult + '</result>';\r\n" +
+				"		}\r\n" +
+				"		lastresult = lastresult + '</lastresult>';\r\n");
+		filled.addScript(script);
+*/		ILink filledLink = links.createNextLink();
+		Submit submit = new Submit(filledLink.toString(), submitVars);
+		submit.setMethod(VXMLConstants.METHOD_POST);
+		submit.setEncodingType("multipart/form-data");
+		filled.addAction(submit);
+		recording.addFilledHandler(filled);
+		ILink noInputLink = links.createNextLink();
+		for (int i = 0; i < parameterNames.length; ++i)
+		{
+			noInputLink.setParameters(parameterNames[i], dataRequestCommand
+					.getParameterValues(parameterNames[i]));
+		}
+		noInputLink.setParameter(dataRequestCommand.getResultName(),
+				dataRequestCommand.getNoInputResultValue());
+		NoInput noInput = new NoInput();
+		noInput.addAction(new Submit(noInputLink.toString(),
+				new String[] { dataRequestCommand.getDataName() }));
+		recording.addEventHandler(noInput);
+		form.addFormElement(recording);
+		ILink hangupLink = links.createNextLink();
+		for (int i = 0; i < parameterNames.length; ++i)
+			hangupLink.setParameters(parameterNames[i], dataRequestCommand
+					.getParameterValues(parameterNames[i]));
+		Catch disconnectCatch = new Catch("connection.disconnect.hangup");
+		String[] disconnectVars = new String[parameterNames.length + 2];
+		disconnectVars[0] = dataRequestCommand.getDataName();
+		disconnectVars[1] = dataRequestCommand.getResultName();
+		disconnectCatch.addVariable(new Variable(dataRequestCommand.getResultName(), "'"
+				+ dataRequestCommand.getHangupResultValue() + "'"));
+		for (int i = 0; i < parameterNames.length; ++i)
+		{
+			disconnectVars[i + 2] = parameterNames[i];
+			String[] values = dataRequestCommand
+					.getParameterValues(parameterNames[i]);
+			StringBuffer buf = new StringBuffer();
+			for (int v = 0; v < values.length; v++)
+			{
+				buf.append(values[v]);
+				if (v < values.length - 1)
+					buf.append(',');
+			}
+			Variable paramVar = new Variable(parameterNames[i], "'" + buf.toString()
+					+ "'");
+			disconnectCatch.addVariable(paramVar);
+		}
+		Submit disconnectSubmit = new Submit(hangupLink.toString(), disconnectVars);
+		disconnectSubmit.setMethod(VXMLConstants.METHOD_POST);
+		disconnectSubmit.setEncodingType("multipart/form-data");
+		disconnectCatch.addAction(disconnectSubmit);
+		recording.addEventHandler(disconnectCatch);
+		Map<String,String[]> parameterMap = new HashMap<String,String[]>();
+		for (int i = 0; i < parameterNames.length; ++i)
+		{
+			parameterMap.put(parameterNames[i], dataRequestCommand.getParameterValues(parameterNames[i]));
+		}
+		form = (Form)addExtendedEvents(links, dataRequestCommand.getResultName(), parameterMap, form);
+//		List<String> events = ExtendedActionEventManager.getDefault().getExtendedEvents();
+//		for(String event : events)
+//		{
+//			ILink eventLink = links.createNextLink();
+//			for (int i = 0; i < parameterNames.length; ++i)
+//				eventLink.setParameters(parameterNames[i], dataRequestCommand
+//						.getParameterValues(parameterNames[i]));
+//			eventLink.setParameter(dataRequestCommand.getResultName(), event);
+//			Catch eventCatch = new Catch(event);
+//			eventCatch.addAction(new Goto(eventLink.toString()));
+//			form.addEventHandler(eventCatch);
+//		}
+		return createVXMLDocument(links, form);
+	}
+
+	private Dialog addExtendedEvents(ILinkFactory links, String resultName, Map<String, String[]> parameterMap, Dialog form)
+	{
+		List<String> events = ExtendedActionEventManager.getDefault().getExtendedEvents();
+		String cpaPrefix = "externalmessage.cpa";
+//		if(events.contains(cpaPrefix))
+		if(false)
+		{
+			List<String> cpaEvents = new ArrayList<String>();
+			for(String event : events)
+			{
+				if(event.startsWith(cpaPrefix))
+					cpaEvents.add(event);
+				else
+				{
+					ILink eventLink = links.createNextLink();
+					eventLink.setParameter(resultName, event);
+					Catch eventCatch = new Catch(event);
+					eventCatch.addAction(new Goto(eventLink.toString()));
+					form.addEventHandler(eventCatch);
+				}
+			}
+			//cpa events
+			Catch cpaCatch = new Catch(cpaPrefix);
+			
+			for(String cpaEvent : cpaEvents)
+			{
+				if(!cpaPrefix.equals(cpaEvent))
+				{
+					ILink eventLink = links.createNextLink();
+					if(null != parameterMap)
+						for(Entry<String, String[]> entry: parameterMap.entrySet()) 
+							eventLink.setParameters(entry.getKey(), entry.getValue());
+					eventLink.setParameter(resultName, cpaEvent);
+//					If eventIf = new If("_event==Õ" + cpaEvent + "Õ");
+					If eventIf = new If("_event=='" + cpaEvent + "'");
+					eventIf.addAction(new Goto(eventLink.toString()));
+					cpaCatch.addIfClause(eventIf);
+				}
+			}
+			ILink cpaLink = links.createNextLink();
+			if(null != parameterMap)
+				for(Entry<String, String[]> entry: parameterMap.entrySet()) 
+					cpaLink.setParameters(entry.getKey(), entry.getValue());
+			cpaLink.setParameter(resultName, cpaPrefix);
+			cpaCatch.addAction(new Goto(cpaLink.toString()));
+			form.addEventHandler(cpaCatch);
+		}
+		else
+		{
+			for(String event : events)
+			{
+				ILink eventLink = links.createNextLink();
+				if(null != parameterMap)
+					for(Entry<String, String[]> entry: parameterMap.entrySet()) 
+						eventLink.setParameters(entry.getKey(), entry.getValue());
+				eventLink.setParameter(resultName, event);
+				Catch eventCatch = new Catch(event);
+				eventCatch.addAction(new Goto(eventLink.toString()));
+				form.addEventHandler(eventCatch);
+			}
+			
+		}
+		return form;
 	}
 	
 	protected IDocument renderSelectionRequest(ILinkFactory links,
