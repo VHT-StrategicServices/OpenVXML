@@ -16,12 +16,35 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.io.DataOutputStream;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.eclipse.vtp.framework.core.IAction;
 import org.eclipse.vtp.framework.core.IActionContext;
 import org.eclipse.vtp.framework.core.IActionResult;
 import org.eclipse.vtp.framework.core.IReporter;
 import org.eclipse.vtp.framework.engine.ActionDescriptor;
+import org.omg.CORBA_2_3.portable.OutputStream;
 import org.w3c.dom.Element;
 
 /**
@@ -38,6 +61,22 @@ public class Action extends Executable
 	/** The index of results by ID. */
 	private final Map<String, Executable> resultPaths = new HashMap<String, Executable>();
 
+	private static HttpClient httpClient = null;
+	
+	static
+    {
+        org.apache.http.params.HttpParams params = new BasicHttpParams();
+        ConnManagerParams.setMaxTotalConnections(params, 600);
+        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(300);
+        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
+
+        SchemeRegistry schemeRegistry = new SchemeRegistry();
+        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+        schemeRegistry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+        org.apache.http.conn.ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+        httpClient = new DefaultHttpClient(cm, params);
+    }
+	
 	/**
 	 * Creates a new Action.
 	 * 
@@ -147,6 +186,15 @@ public class Action extends Executable
 		report.put("event", "action.ended");
 		sequence.context.report(IReporter.SEVERITY_INFO, "Action \""
 				+ getName() + "\" Ended", report);
+		try
+		{
+			sendNavigatorMessage(sequence);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			actionResult = sequence.context.createResult(null, e);
+		}
 		if (actionResult == null)
 			actionResult = sequence.context.createResult(null);
 		Throwable cause = actionResult.getFailureCause();
@@ -178,6 +226,28 @@ public class Action extends Executable
 			next = resultPaths.get(resultName);
 		}
 		return next;
+	}
+	
+	public void sendNavigatorMessage(Sequence sequence) throws Exception
+	{
+		try
+		{
+			String sessionId = sequence.context.getSessionID();
+			String moduleName = getName();
+			URI uri = new URI("http://10.20.0.179:8888/event");
+			HttpContext httpContext = new BasicHttpContext();
+			CookieStore cookieStore = new BasicCookieStore();
+			httpContext.setAttribute("http.cookie-store", cookieStore);
+			final HttpPost post = new HttpPost(uri);
+			String jsonPayload = "{\"channel\": {\"type\": \"Advanced Rest Client\"},\"events\": [{\"type\": \"topic\",\"event_name\": \"Module_Change\"}],\"module\": {\"session_id\": \"" + sessionId + "\" ,\"module_name\": \"" + moduleName + "\"},\"resources\": [{\"type\": \"None\"}]}";
+			post.setEntity(new StringEntity(jsonPayload));
+			post.setHeader("Content-Type", "application/json");
+			httpClient.execute(post, httpContext);
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
 	}
 
 	/*
