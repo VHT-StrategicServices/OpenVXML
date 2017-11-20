@@ -234,12 +234,12 @@ public class Action extends Executable
 		{
 			String sessionId = sequence.context.getSessionID();
 			String moduleName = getName();
-			URI uri = new URI("http://10.20.0.179:8888/event");
+			URI uri = new URI((String)sequence.context.getRootAttribute("com.virtualhold.toolkit.navigatorUrl"));
 			HttpContext httpContext = new BasicHttpContext();
 			CookieStore cookieStore = new BasicCookieStore();
 			httpContext.setAttribute("http.cookie-store", cookieStore);
 			final HttpPost post = new HttpPost(uri);
-			String jsonPayload = "{\"channel\": {\"type\": \"Advanced Rest Client\"},\"events\": [{\"type\": \"topic\",\"event_name\": \"Module_Change\"}],\"module\": {\"session_id\": \"" + sessionId + "\" ,\"module_name\": \"" + moduleName + "\"},\"resources\": [{\"type\": \"None\"}]}";
+			String jsonPayload = "{\"channel\": {\"type\": \"VIS\"},\"events\": [{\"type\": \"topic\",\"event_name\": \"Module_Change\"}],\"customer\": {\"session_id\": \"" + sessionId + "\" ,\"module_name\": \"" + moduleName + "\", \"email\": \"aacevedo@virtualhold.com\", \"phone1\": \"3306702205\", \"phone2\": \"2205\", \"Route_Point\":\"VH_Test\"},\"resources\": [{\"type\": \"None\"}]}";
 			post.setEntity(new StringEntity(jsonPayload));
 			post.setHeader("Content-Type", "application/json");
 			httpClient.execute(post, httpContext);
