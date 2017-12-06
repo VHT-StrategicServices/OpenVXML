@@ -61,22 +61,6 @@ public class Action extends Executable
 	/** The index of results by ID. */
 	private final Map<String, Executable> resultPaths = new HashMap<String, Executable>();
 
-	private static HttpClient httpClient = null;
-	
-	static
-    {
-        org.apache.http.params.HttpParams params = new BasicHttpParams();
-        ConnManagerParams.setMaxTotalConnections(params, 600);
-        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(300);
-        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
-
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-        schemeRegistry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
-        org.apache.http.conn.ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
-        httpClient = new DefaultHttpClient(cm, params);
-    }
-	
 	/**
 	 * Creates a new Action.
 	 * 
@@ -232,6 +216,18 @@ public class Action extends Executable
 	{
 		try
 		{
+	        org.apache.http.params.HttpParams params = new BasicHttpParams();
+	        ConnManagerParams.setMaxTotalConnections(params, 600);
+	        ConnPerRouteBean connPerRoute = new ConnPerRouteBean(300);
+	        ConnManagerParams.setMaxConnectionsPerRoute(params, connPerRoute);
+
+	        SchemeRegistry schemeRegistry = new SchemeRegistry();
+	        schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+	        schemeRegistry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+	        org.apache.http.conn.ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+	        
+			HttpClient httpClient = new DefaultHttpClient(cm, params);
+			sequence.context.info("!!!!!Lets get weird: " + sequence.context.getAttributeNames().toString() + " some other weird stuff? " + sequence.context.getParameterNames().toString());
 			String sessionId = sequence.context.getSessionID();
 			String moduleName = getName();
 			URI uri = new URI((String)sequence.context.getRootAttribute("com.virtualhold.toolkit.navigatorUrl"));
@@ -243,6 +239,8 @@ public class Action extends Executable
 			post.setEntity(new StringEntity(jsonPayload));
 			post.setHeader("Content-Type", "application/json");
 			httpClient.execute(post, httpContext);
+			
+			System.gc();
 		}
 		catch(Exception e)
 		{
