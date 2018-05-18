@@ -41,7 +41,7 @@ import org.eclipse.vtp.framework.spi.ICommand;
 /**
  * A base implementation of {@link IPlatform}.
  * 
- * @author Lonnie Pryor
+
  */
 public abstract class AbstractPlatform implements IPlatform
 {
