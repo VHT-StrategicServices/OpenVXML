@@ -109,6 +109,16 @@ public class GenesysVoicePlatform8 extends VoicePlatform
 		if("gvpUserData".equals(name) && originalValue != null) //TODO change this to use the gvpCtiC variable
 		{
 			System.out.println("gvpUserData: " + originalValue); //TODO cleanup
+			
+			originalValue = dirtyStringReplaceGreek(originalValue);
+			
+			System.out.println("gvpUserData Encoded with greek: " + originalValue);
+			
+			originalValue = URLDecoder.decode(originalValue);
+			
+			
+			System.out.println("gvpUserData Decoded with greek: " + originalValue);
+			
 			if(originalValue.contains("gvp.rm.cti-call=1"))
 			{
 				System.out.println("Using cti-c"); //TODO cleanup
@@ -245,7 +255,7 @@ public class GenesysVoicePlatform8 extends VoicePlatform
 						eventLink.setParameters(parameterNames[i], initialCommand
 								.getParameterValues(parameterNames[i]));
 					eventLink.setParameter(initialCommand.getResultName(), cpaEvent);
-					If eventIf = new If("_event==Õ" + cpaEvent + "Õ");
+					If eventIf = new If("_event==ï¿½" + cpaEvent + "ï¿½");
 //					If eventIf = new If("_event=='" + cpaEvent + "'");
 					eventIf.addAction(new Goto(eventLink.toString()));
 					cpaCatch.addIfClause(eventIf);
@@ -410,7 +420,9 @@ public class GenesysVoicePlatform8 extends VoicePlatform
 			encodedName = encodedName.replaceAll("\\+", "%20");
 			nameList.append(encodedName);
 			nameList.append('=');
-			String encodedValue = URLEncoder.encode(metaDataMessageCommand.getMetaDataValue(names[i]));
+			String encodedValue = URLEncoder.encode(URLDecoder.decode(URLDecoder.decode(metaDataMessageCommand.getMetaDataValue(names[i]))));
+			System.out.println("FINAL VALUE: "+ names[i] + " " + encodedValue);
+			
 			encodedValue = encodedValue.replaceAll("\\+", "%20");
 			nameList.append(encodedValue);
 			if(i < names.length -1)
@@ -504,5 +516,81 @@ public class GenesysVoicePlatform8 extends VoicePlatform
 */
 		return dataMap;
     }
+	
+	private String dirtyStringReplaceGreek(String original)
+	{
+		String encoded  = URLEncoder.encode(original); 
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%98", URLEncoder.encode("%CE%91"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B1", URLEncoder.encode("%CE%B1"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%99", URLEncoder.encode("%CE%92"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B2", URLEncoder.encode("%CE%B2"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%9C", URLEncoder.encode("%CE%93"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B3", URLEncoder.encode("%CE%B3"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%9D", URLEncoder.encode("%CE%94"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B4", URLEncoder.encode("%CE%B4"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%A2", URLEncoder.encode("%CE%95"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B5", URLEncoder.encode("%CE%B5"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%93", URLEncoder.encode("%CE%96"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B6", URLEncoder.encode("%CE%B6"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%94", URLEncoder.encode("%CE%97"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B7", URLEncoder.encode("%CE%B7"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%8B%C2%9C", URLEncoder.encode("%CE%98"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B8", URLEncoder.encode("%CE%B8"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%84%C2%A2", URLEncoder.encode("%CE%99"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B9", URLEncoder.encode("%CE%B9"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%A1", URLEncoder.encode("%CE%9A"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%BA", URLEncoder.encode("%CE%BA"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%BA", URLEncoder.encode("%CE%9B"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%BB", URLEncoder.encode("%CE%BB"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%93", URLEncoder.encode("%CE%9C"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%BC", URLEncoder.encode("%CE%BC"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%5Cu009d", URLEncoder.encode("%CE%9D"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%BD", URLEncoder.encode("%CE%BD"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%BE", URLEncoder.encode("%CE%9E"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%BE", URLEncoder.encode("%CE%BE"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%B8", URLEncoder.encode("%CE%9F"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%BF", URLEncoder.encode("%CE%BF"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A0", URLEncoder.encode("%CE%A0"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%82%C2%AC", URLEncoder.encode("%CF%80"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A1", URLEncoder.encode("%CE%A1"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%5Cu0081", URLEncoder.encode("%CF%81"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A3", URLEncoder.encode("%CE%A3"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%86%C2%92", URLEncoder.encode("%CF%83"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%9A", URLEncoder.encode("%CF%82"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A4", URLEncoder.encode("%CE%A4"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%9E", URLEncoder.encode("%CF%84"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A5", URLEncoder.encode("%CE%A5"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%A6", URLEncoder.encode("%CF%85"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A6", URLEncoder.encode("%CE%A6"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%A0", URLEncoder.encode("%CF%86"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A7", URLEncoder.encode("%CE%A7 "));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%A1", URLEncoder.encode("%CF%87"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A8", URLEncoder.encode("%CE%A8"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%8B%C2%86", URLEncoder.encode("%CF%88"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%A9", URLEncoder.encode("%CE%A9"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%B0", URLEncoder.encode("%CF%89"));		
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%A0", URLEncoder.encode("%CE%86"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%AC", URLEncoder.encode("%CE%AC"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%8B%C2%86", URLEncoder.encode("%CE%88"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%5Cu00ad", URLEncoder.encode("%CE%AD"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%A2%C2%80%C2%B0", URLEncoder.encode("%CE%89"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%AE", URLEncoder.encode("%CE%AE"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%A0", URLEncoder.encode("%CE%8A"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%AF", URLEncoder.encode("%CE%AF"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%92", URLEncoder.encode("%CE%8C"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%85%C2%92", URLEncoder.encode("%CF%8C"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%85%C2%BD", URLEncoder.encode("%CE%8E"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%5Cu008d", URLEncoder.encode("%CF%8D"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%5Cu008f", URLEncoder.encode("%CE%8F"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%85%C2%BD", URLEncoder.encode("%CF%8E"));		
+		encoded = encoded.replaceAll("%C3%83%C2%8E%5Cu0090", URLEncoder.encode("%CE%90"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%B0", URLEncoder.encode("%CE%B0"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%AA", URLEncoder.encode("%CE%AA"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%85%C2%A0", URLEncoder.encode("%CF%8A"));
+		encoded = encoded.replaceAll("%C3%83%C2%8E%C3%82%C2%AB", URLEncoder.encode("%CE%AB"));
+		encoded = encoded.replaceAll("%C3%83%C2%8F%C3%A2%C2%80%C2%B9", URLEncoder.encode("%CF%8B"));
+
+		return encoded;
+	}
 
 }
