@@ -2,7 +2,7 @@
 <feature
       id="com.openmethods.openvxml.idriver.feature"
       label="Feature"
-      version="5.0.0.qualifier"
+      version="4.0.0.qualifier"
       provider-name="OPENMETHODS">
 
    <description url="http://www.example.com/description">
