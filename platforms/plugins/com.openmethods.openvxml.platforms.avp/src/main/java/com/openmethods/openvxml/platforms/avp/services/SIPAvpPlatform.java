@@ -110,6 +110,7 @@ public class SIPAvpPlatform extends VoicePlatform
 		VXMLDocument document = super.createVXMLDocument(links, dialog);
 		document.setProperty("documentmaxage", "0"); //$NON-NLS-1$ //$NON-NLS-2$
 		document.setProperty("documentmaxstale", "0"); //$NON-NLS-1$ //$NON-NLS-2$
+		document.setProperty("com.telera.speechenabled", Boolean.FALSE.toString()); 
 		return document;
     }
 	
