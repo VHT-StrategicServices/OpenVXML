@@ -1057,18 +1057,22 @@ public class VoicePlatform extends AbstractPlatform implements VXMLConstants
 		prompt.setLanguage(getCurrentLocale());
 		recording.setPrompt(prompt);
 		String[] parameterNames = dataRequestCommand.getParameterNames();
-		String[] submitVars = new String[parameterNames.length + 4];
+		String[] submitVars = new String[parameterNames.length + 6];
 		submitVars[0] = dataRequestCommand.getDataName();
 		submitVars[1] = dataRequestCommand.getResultName();
 		submitVars[2] = dataRequestCommand.getDataName() + "_termchar";
-		submitVars[3] = "lastresult";
+		submitVars[3] = dataRequestCommand.getDataName() + "_duration";
+		submitVars[4] = dataRequestCommand.getDataName() + "_size";
+		submitVars[5] = "lastresult";
 		Filled filled = new Filled();
 		filled.addVariable(new Variable(dataRequestCommand.getResultName(), "'"
 				+ dataRequestCommand.getFilledResultValue() + "'"));
 		filled.addVariable(new Variable(dataRequestCommand.getDataName() + "_termchar", dataRequestCommand.getDataName() + "$.termchar"));
+		filled.addVariable(new Variable(dataRequestCommand.getDataName() + "_duration", dataRequestCommand.getDataName() + "$.duration"));
+		filled.addVariable(new Variable(dataRequestCommand.getDataName() + "_size", dataRequestCommand.getDataName() + "$.size"));
 		for (int i = 0; i < parameterNames.length; ++i)
 		{
-			submitVars[i + 4] = parameterNames[i];
+			submitVars[i + 6] = parameterNames[i];
 			String[] values = dataRequestCommand
 					.getParameterValues(parameterNames[i]);
 			StringBuffer buf = new StringBuffer();

@@ -98,6 +98,12 @@ public class DataRequestAction implements IAction
 				IStringObject dtmfVar = (IStringObject)variableRegistry.createVariable(IStringObject.TYPE_NAME);
 				dtmfVar.setValue(context.getParameter(configuration.getDataName() + "_termchar"));
 				variableRegistry.setVariable("RecordDTMF", dtmfVar);
+				IStringObject durationVar = (IStringObject)variableRegistry.createVariable(IStringObject.TYPE_NAME);
+				durationVar.setValue(context.getParameter(configuration.getDataName() + "_duration"));
+				variableRegistry.setVariable("RecordDuration", durationVar);
+				IStringObject sizeVar = (IStringObject)variableRegistry.createVariable(IStringObject.TYPE_NAME);
+				sizeVar.setValue(context.getParameter(configuration.getDataName() + "_size"));
+				variableRegistry.setVariable("RecordSize", sizeVar);
 				lastResult.clear();
 				String lastResultXML = context.getParameter("lastresult");
 				if(lastResultXML != null && !lastResultXML.equals(""))

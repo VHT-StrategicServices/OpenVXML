@@ -142,6 +142,12 @@ public class RecordInformationProvider extends PrimitiveInformationProvider impl
 					Variable dtmf = new Variable("RecordDTMF", ft);
 					VariableHelper.buildObjectFields(dtmf, bos);
 					ret.add(dtmf);
+					Variable duration = new Variable("RecordDuration", ft);
+					VariableHelper.buildObjectFields(duration, bos);
+					ret.add(duration);
+					Variable size = new Variable("RecordSize", ft);
+					VariableHelper.buildObjectFields(size, bos);
+					ret.add(size);
 				}
 			}
 			return ret;
