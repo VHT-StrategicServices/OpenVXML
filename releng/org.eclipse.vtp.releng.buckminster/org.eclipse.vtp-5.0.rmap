@@ -18,7 +18,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
   </rm:searchPath>
@@ -28,7 +28,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
   </rm:searchPath>
@@ -38,7 +38,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
 <!--    <rm:provider componentTypes="buckminster,eclipse.feature,osgi.bundle" readerType="svn" source="true" mutable="true">
@@ -53,7 +53,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
 <!--    <rm:provider componentTypes="buckminster,eclipse.feature" readerType="svn" source="true" mutable="true">
@@ -68,7 +68,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
 <!--    <rm:provider componentTypes="buckminster,osgi.bundle" readerType="svn" source="true" mutable="true">
@@ -83,7 +83,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
 <!--    <rm:provider componentTypes="buckminster,eclipse.feature" readerType="svn" source="true" mutable="true">
@@ -98,7 +98,7 @@
   			<bc:propertyRef key="workspace.root"/>
   			<bc:propertyRef key="buckminster.component"/>
   		</rm:uri>
-  		<rm:property key="git.remote.uri" value="https://github.com/OpenMethods/OpenVXML.git"/>
+  		<rm:property key="git.remote.uri" value="https://github.com/VHT/OpenVXML.git"/>
   		<rm:property key="git.auto.fetch" value="true"/>
   	</rm:provider>
 <!--    <rm:provider componentTypes="buckminster,osgi.bundle" readerType="svn" source="true" mutable="true">
@@ -124,19 +124,19 @@
       <rm:uri format="http://archive.eclipse.org/tools/orbit/downloads/drops/R20100519200754/updateSite?importType=binary"/>
     </rm:provider>
   </rm:searchPath>
-  <rm:searchPath name="helios-release">
+  <rm:searchPath name="indigo-release">
   	<rm:provider readerType="p2" componentTypes="osgi.bundle,eclipse.feature,buckminster" source="false" mutable="false">
-  		<rm:uri format="http://download.eclipse.org/releases/helios?importType=binary"/>
+  		<rm:uri format="http://download.eclipse.org/releases/indigo?importType=binary"/>
   	</rm:provider>
   </rm:searchPath>
   <rm:searchPath name="epp">
   	<rm:provider readerType="p2" componentTypes="osgi.bundle,eclipse.feature,buckminster" source="false" mutable="false">
-  		<rm:uri format="http://download.eclipse.org/technology/epp/packages/helios?importType=bindary"/>
+  		<rm:uri format="http://download.eclipse.org/technology/epp/packages/indigo?importType=binary"/>
   	</rm:provider>
   </rm:searchPath>
   <rm:searchPath name="Elements">
   	<rm:provider readerType="p2" componentTypes="osgi.bundle,eclipse.feature,buckminster" source="false" mutable="false">
-  		<rm:uri format="http://build.openmethods.com/downloads/Elements/repository/"/>
+  		<rm:uri format="http://build.vhtcx.com/downloads/Elements/repository/"/>
   	</rm:provider>
   </rm:searchPath>
   <rm:locator searchPathRef="Elements" failOnError="false"/>
@@ -144,5 +144,5 @@
   <rm:locator searchPathRef="nebula-pshelf" failOnError="false"/>
   <rm:locator searchPathRef="nebula" failOnError="false"/>
   <rm:locator searchPathRef="epp" failOnError="false"/>
-  <rm:locator searchPathRef="helios-release"/>
+  <rm:locator searchPathRef="indigo-release"/>
 </rm:rmap>

@@ -387,6 +387,20 @@ public class SimpleEnglishVoiceFormatter extends VoiceFormatter
 				}
 			}
 		}
+		else if(formatDefinition.equals("Press Digits"))
+		{
+			for(int i = 0; i < chars.length; i++)
+			{
+				String s = new String(chars, i, 1);
+				if(s.equals("*"))
+					s = "11";
+				else if(s.equals("#"))
+					s = "12";
+				if(i != 0)
+					ret.add(getAudioContent(resourceManager, "/Common/", "and", "and"));
+				ret.add(getAudioContent(resourceManager, "/press_digits/", "press_digits_" + s, s));
+			}
+		}
 		else
 		{
 			for(int i = 0; i < chars.length; i++)
@@ -840,6 +854,7 @@ public class SimpleEnglishVoiceFormatter extends VoiceFormatter
 		else if(formattable instanceof DigitsContent)
 		{
 			ret.add("DTMF");
+			ret.add("Press Digits");
 		}
 		else if(formattable instanceof LettersContent)
 		{
