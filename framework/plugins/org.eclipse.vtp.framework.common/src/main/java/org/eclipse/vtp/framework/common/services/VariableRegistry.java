@@ -605,6 +605,10 @@ public class VariableRegistry implements IVariableRegistry, IScriptable, IVariab
 		IDataObject variable = getVariable(name);
 		if (variable == null)
 			setVariable(name, variable = createVariable(IStringObject.TYPE_NAME));
+		else
+		{
+			setVariable(name, variable = createVariable(variable.getType()));
+		}
 		if (variable instanceof SimpleObject)
 			((SimpleObject)variable).setEntry("value", value); //$NON-NLS-1$
 		return true;
